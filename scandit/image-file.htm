@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/scandit-sdk@5.x"></script>
+</head>
+
+<body>
+  <h1>Scandit</h1>
+  <div id="performance"></div>
+  <input type="file" id="barcode-file" onchange="loadfile()" accept=".jpg,.jpeg,.png,.bmp" multiple />
+  <div>
+    <img id='image' />
+</div>
+  <script>
+    var performanceReport = document.getElementById('performance');
+    var scanditScanner;
+    ScanditSDK.configure("AZwuAjJZLa8GPRZJUSYeTRMUA7aaAIqzmmgoURl2FojET/qUTgFcPM1HrEjjR+hSpz7HhQUkH211UGnoVEtyIPVB1hgaKqjg7WsaD6NAwojNQqwzEFclXWJps3JyaON+8AyZcF4FLgvtHk0wEgMiebqghaFzcRj1QV7EBgAHBjvOMmKyauM1nY7+NQ2B/89OFGa7wqj/X0NbtDitt52DvYshvYECztp/IiWiaiHcohtDIrkAC4xk7/DBF9DL+7bEyLKzj8ps1E5cS32trApcPa+HoPqiwhjMPdP21Sxf1kkiCWQfetdZ1q9QvwinWWU/QRKZFMmHqMqRI8ru0Thn/K0sysMxV4l3btNhBDy3fMqZPO2E79VRDkWJ176W/r9z1mhu26QqoDtCa5+C4LDOMORifwWYgfndsFCub7cDVSGpYQfgnpxPNHxLIyJFXS6zwxJWZ5YLbCfh2p8yKsF0nsAjVdQZxYtQBhv+BSVh+yGHHwja7PzoZ0OurUaP59ha/iIgVyImjmihuiOz8cKGD/TC+PhRItStfPVUh7b3M9Xg8MbB37pB94J09+uV4TAvC3EXBPLjopEJiARXuDLWy5zJku/lEBnYP7JuS6igvZ0LxApaqMPDvgCu81wC+PwX1QYcvOE95bHO8EPYfPKK5q1ORxvac61umHqO4ZOR7IgGxzn9ZHL0/eOxxIoC89tcD5Zqh5I12FmfhfpVFY1tL0cXUT3qimVb3s3cmfoUyKls51K7wEd+SO29VspIY3UgUhTiptJpGrcAaLMpwP8+2Z91WqUVqhbaxdMFXcTQ9QvQPsE90Dq5KNCRxRyH8MOq", {
+      engineLocation: "https://cdn.jsdelivr.net/npm/scandit-sdk@5.x/build/",
+    })
+      .then(() => {
+        scanditScanner = new ScanditSDK.Scanner({ imageSettings: {}, scanSettings: new ScanditSDK.ScanSettings({ enabledSymbologies: ["ean8", "ean13", "upca", "upce", "qr", "code93", "codabar", "code128"] }) });
+      });
+
+    function loadfile() {
+      let name = document.getElementById('barcode-file');
+      var img = document.getElementById('image');
+
+      var reader = new FileReader();
+      reader.onload = function (evt) {
+        img.onload = function () {
+          console.log(img.width, img.height);
+          // load image to canvas
+          var canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          var context = canvas.getContext('2d');
+          context.drawImage(img, 0, 0);
+          var buffer = context.getImageData(0, 0, canvas.width, canvas.height).data;
+          scanditScanner.applyImageSettings({ format: ScanditSDK.ImageSettings.Format.RGBA_8U, width: canvas.width, height: canvas.height });
+          let decoding_start = Date.now();
+          scanditScanner.processImage(buffer, true).then((scanResult) => {
+            let decoding_end = Date.now();
+            performanceReport.innerHTML = "File name: " + name.files[0].name + ", time cost: " + (decoding_end - decoding_start) + " ms <br>";
+            console.log("File name: " + name.files[0].name + ", time cost: " + (decoding_end - decoding_start) + " ms");
+            if (scanResult.barcodes.length > 0) {
+              for (var barcode of scanResult.barcodes) {
+                console.log(barcode.data);
+                performanceReport.innerHTML += "Result: " + barcode.data + " <br>"
+              }
+            }
+            else {
+              performanceReport.innerHTML += 'No barcode found';
+              console.log('No barcode found');
+            }
+          });
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(name.files[0]);
+    };
+  </script>
+</body>
+
+</html>

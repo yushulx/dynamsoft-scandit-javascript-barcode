@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-javascript-barcode@7.5.0-v1/dist/dbr.js" data-productKeys="LICENSE-KEY"></script>
+</head>
+
+<body>
+    <h1>Dynamsoft</h1>
+    <div id="performance"></div>
+    <input type="file" id="barcode-file" onchange="loadfile()" accept=".jpg,.jpeg,.png,.bmp" multiple />
+    <div>
+        <img id='image' />
+    </div>
+    
+    <script>
+        var performanceReport = document.getElementById('performance');
+        var barcodereader;
+        (async () => {
+            barcodereader = await Dynamsoft.BarcodeReader.createInstance();
+            await barcodereader.updateRuntimeSettings('balance');
+            let settings = await barcodereader.getRuntimeSettings();
+            // settings.deblurLevel = 0;
+            settings.expectedBarcodesCount = 1
+            settings.timeout = 500
+            barcodereader.updateRuntimeSettings(settings);
+        })();
+
+        function loadfile() {
+            let name = document.getElementById('barcode-file');
+            var img = document.getElementById('image');
+
+            var reader = new FileReader();
+            reader.onload = function (evt) {
+                img.onload = function () {
+                    console.log(img.width, img.height);
+                    // load image to canvas
+                    var canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    var context = canvas.getContext('2d');
+                    context.drawImage(img, 0, 0);
+                    var buffer = context.getImageData(0, 0, canvas.width, canvas.height).data;
+                    let decoding_start = Date.now();
+                    barcodereader
+                        .decodeBuffer(
+                            buffer,
+                            canvas.width,
+                            canvas.height,
+                            canvas.width * 4,
+                            Dynamsoft.EnumImagePixelFormat.IPF_ARGB_8888
+                        )
+                        .then((results) => {
+                            let decoding_end = Date.now();
+                            performanceReport.innerHTML = "File name: " + name.files[0].name + ", time cost: " + (decoding_end - decoding_start) + " ms <br>";
+                            console.log("File name: " + name.files[0].name + ", time cost: " + (decoding_end - decoding_start) + " ms");
+                            let txts = [];
+                            try {
+                                let localization;
+                                for (var i = 0; i < results.length; ++i) {
+                                    txts.push(results[i].BarcodeText);
+                                }
+                                let out = txts.join(', ');
+                                if (txts.length > 0) {
+                                    performanceReport.innerHTML += out + " <br>"
+                                    console.log(out);
+                                }
+                                else {
+                                    performanceReport.innerHTML += 'No barcode found'
+                                    console.log('No barcode found');
+                                }
+                            } catch (e) {
+                            }
+                        });
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(name.files[0]);
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/scandit-sdk@5.x"></script>
+</head>
+
+<body>
+    <div id="scandit-barcode-picker"></div>
+    <script>
+        ScanditSDK.configure("AZwuAjJZLa8GPRZJUSYeTRMUA7aaAIqzmmgoURl2FojET/qUTgFcPM1HrEjjR+hSpz7HhQUkH211UGnoVEtyIPVB1hgaKqjg7WsaD6NAwojNQqwzEFclXWJps3JyaON+8AyZcF4FLgvtHk0wEgMiebqghaFzcRj1QV7EBgAHBjvOMmKyauM1nY7+NQ2B/89OFGa7wqj/X0NbtDitt52DvYshvYECztp/IiWiaiHcohtDIrkAC4xk7/DBF9DL+7bEyLKzj8ps1E5cS32trApcPa+HoPqiwhjMPdP21Sxf1kkiCWQfetdZ1q9QvwinWWU/QRKZFMmHqMqRI8ru0Thn/K0sysMxV4l3btNhBDy3fMqZPO2E79VRDkWJ176W/r9z1mhu26QqoDtCa5+C4LDOMORifwWYgfndsFCub7cDVSGpYQfgnpxPNHxLIyJFXS6zwxJWZ5YLbCfh2p8yKsF0nsAjVdQZxYtQBhv+BSVh+yGHHwja7PzoZ0OurUaP59ha/iIgVyImjmihuiOz8cKGD/TC+PhRItStfPVUh7b3M9Xg8MbB37pB94J09+uV4TAvC3EXBPLjopEJiARXuDLWy5zJku/lEBnYP7JuS6igvZ0LxApaqMPDvgCu81wC+PwX1QYcvOE95bHO8EPYfPKK5q1ORxvac61umHqO4ZOR7IgGxzn9ZHL0/eOxxIoC89tcD5Zqh5I12FmfhfpVFY1tL0cXUT3qimVb3s3cmfoUyKls51K7wEd+SO29VspIY3UgUhTiptJpGrcAaLMpwP8+2Z91WqUVqhbaxdMFXcTQ9QvQPsE90Dq5KNCRxRyH8MOq", {
+  engineLocation: "https://cdn.jsdelivr.net/npm/scandit-sdk@5.x/build/",
+})
+  .then(() => {
+    return ScanditSDK.BarcodePicker.create(document.getElementById("scandit-barcode-picker"), {
+      scanSettings: new ScanditSDK.ScanSettings({ enabledSymbologies: ["ean8", "ean13", "upca", "upce", "qr", "code93", "codabar", "code128"] }),
+    });
+  })
+  .then((barcodePicker) => {
+    barcodePicker.on("scan", (scanResult) => {
+      alert(scanResult.barcodes[0].data);
+    });
+  });
+    </script>
+</body>
+</html>
