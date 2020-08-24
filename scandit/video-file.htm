@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/scandit-sdk@5.x"></script>
+</head>
+
+<body>
+  <h1>Scandit</h1>
+  <div id="performance"></div>
+  <input type="file" id="videofile" accept=".mp4" onchange="loadvideo()" />
+  <script>
+    var log = [["Time Cost (ms)", "Barcode Type", "Barcode Value"]];
+    var performanceReport = document.getElementById('performance');
+    var scanditScanner;
+    ScanditSDK.configure("AZwuAjJZLa8GPRZJUSYeTRMUA7aaAIqzmmgoURl2FojET/qUTgFcPM1HrEjjR+hSpz7HhQUkH211UGnoVEtyIPVB1hgaKqjg7WsaD6NAwojNQqwzEFclXWJps3JyaON+8AyZcF4FLgvtHk0wEgMiebqghaFzcRj1QV7EBgAHBjvOMmKyauM1nY7+NQ2B/89OFGa7wqj/X0NbtDitt52DvYshvYECztp/IiWiaiHcohtDIrkAC4xk7/DBF9DL+7bEyLKzj8ps1E5cS32trApcPa+HoPqiwhjMPdP21Sxf1kkiCWQfetdZ1q9QvwinWWU/QRKZFMmHqMqRI8ru0Thn/K0sysMxV4l3btNhBDy3fMqZPO2E79VRDkWJ176W/r9z1mhu26QqoDtCa5+C4LDOMORifwWYgfndsFCub7cDVSGpYQfgnpxPNHxLIyJFXS6zwxJWZ5YLbCfh2p8yKsF0nsAjVdQZxYtQBhv+BSVh+yGHHwja7PzoZ0OurUaP59ha/iIgVyImjmihuiOz8cKGD/TC+PhRItStfPVUh7b3M9Xg8MbB37pB94J09+uV4TAvC3EXBPLjopEJiARXuDLWy5zJku/lEBnYP7JuS6igvZ0LxApaqMPDvgCu81wC+PwX1QYcvOE95bHO8EPYfPKK5q1ORxvac61umHqO4ZOR7IgGxzn9ZHL0/eOxxIoC89tcD5Zqh5I12FmfhfpVFY1tL0cXUT3qimVb3s3cmfoUyKls51K7wEd+SO29VspIY3UgUhTiptJpGrcAaLMpwP8+2Z91WqUVqhbaxdMFXcTQ9QvQPsE90Dq5KNCRxRyH8MOq", {
+      engineLocation: "https://cdn.jsdelivr.net/npm/scandit-sdk@5.x/build/",
+    })
+      .then(() => {
+        scanditScanner = new ScanditSDK.Scanner({ imageSettings: {}, scanSettings: new ScanditSDK.ScanSettings({ gpuAcceleration: true, enabledSymbologies: ["code128"], maxNumberOfCodesPerFrame: 1 }) });
+      });
+
+
+    var videoContainer;
+    var isPlaying = true;
+
+    function decodeVideo(width, height) {
+      let canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      let context = canvas.getContext('2d');
+      context.drawImage(videoContainer, 0, 0);
+      let buffer = context.getImageData(0, 0, canvas.width, canvas.height).data;
+      scanditScanner.applyImageSettings({ format: ScanditSDK.ImageSettings.Format.RGBA_8U, width: canvas.width, height: canvas.height });
+      let decoding_start = Date.now();
+      scanditScanner.processImage(buffer).then((scanResult) => {
+        let decoding_end = Date.now();
+        performanceReport.innerHTML = "<br> Time cost: " + (decoding_end - decoding_start) + " ms <br>";
+
+        if (scanResult.barcodes.length > 0) {
+          for (var barcode of scanResult.barcodes) {
+            console.log(barcode.data + ", time cost: " + (decoding_end - decoding_start));
+            performanceReport.innerHTML += "Type:" + barcode.symbology + ", Value: " + barcode.data + " <br>"
+            log.push([(decoding_end - decoding_start), barcode.symbology, barcode.data]);
+          }
+        }
+        else {
+          performanceReport.innerHTML += 'No barcode found' + " <br>";
+          console.log('No barcode found');
+        }
+
+        if (isPlaying) {
+          decodeVideo(width, height);
+        }
+        else {
+          saveAsCSV();
+        }
+      });
+
+
+    }
+
+    function loadvideo() {
+      let name = document.getElementById('videofile');
+      performanceReport.innerHTML = "";
+
+      videoContainer = document.getElementById('videoContainer');
+      videoContainer.src = name.files.item(0).name;
+      videoContainer.addEventListener("loadedmetadata", function (e) {
+        var width = this.videoWidth,
+          height = this.videoHeight;
+        console.log(width, height);
+        decodeVideo(width, height);
+      }, false);
+
+      videoContainer.addEventListener("playing", function () {
+        isPlaying = true;
+        decodeVideo(this.videoWidth, this.videoHeight);
+      });
+
+      videoContainer.addEventListener("pause", function () {
+        isPlaying = false;
+      });
+    };
+
+    function saveAsCSV() {
+      let csvContent = "data:text/csv;charset=utf-8," + log.map(e => e.join(",")).join("\n");
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "scandit_test_" + Date.now() + ".csv");
+      link.click();
+    }
+  </script>
+  <div>
+    <video muted autoplay id="videoContainer" controls></video>
+  </div>
+</body>
+
+</html>
