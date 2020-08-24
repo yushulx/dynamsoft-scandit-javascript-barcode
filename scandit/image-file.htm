@@ -19,7 +19,7 @@
       engineLocation: "https://cdn.jsdelivr.net/npm/scandit-sdk@5.x/build/",
     })
       .then(() => {
-        scanditScanner = new ScanditSDK.Scanner({ imageSettings: {}, scanSettings: new ScanditSDK.ScanSettings({ enabledSymbologies: ["ean8", "ean13", "upca", "upce", "qr", "code93", "codabar", "code128"] }) });
+        scanditScanner = new ScanditSDK.Scanner({ imageSettings: {}, scanSettings: new ScanditSDK.ScanSettings({ enabledSymbologies: ["ean8", "ean13", "upca", "upce", "qr", "code93", "codabar", "code128", "aztec", "data-matrix", "maxicode", "pdf417"], maxNumberOfCodesPerFrame: 20 }) });
       });
 
     function loadfile() {

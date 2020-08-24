@@ -21,8 +21,8 @@
             await barcodereader.updateRuntimeSettings('balance');
             let settings = await barcodereader.getRuntimeSettings();
             // settings.deblurLevel = 0;
-            settings.expectedBarcodesCount = 1
-            settings.timeout = 500
+            // settings.expectedBarcodesCount = 1
+            // settings.timeout = 500
             barcodereader.updateRuntimeSettings(settings);
         })();
 
@@ -58,11 +58,11 @@
                             try {
                                 let localization;
                                 for (var i = 0; i < results.length; ++i) {
+                                    performanceReport.innerHTML += "Result: " + results[i].BarcodeText + " <br>"
                                     txts.push(results[i].BarcodeText);
                                 }
                                 let out = txts.join(', ');
                                 if (txts.length > 0) {
-                                    performanceReport.innerHTML += out + " <br>"
                                     console.log(out);
                                 }
                                 else {
