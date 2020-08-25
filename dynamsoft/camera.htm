@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-javascript-barcode@7.5.0-v1/dist/dbr.js"
+        data-productKeys="LICENSE-KEY"></script>
+</head>
+
+<body>
+    <h1>Dynamsoft</h1>
+    <div class="select">
+        <a>Video source: </a>
+        <select id="videoSource"></select>
+    </div>
+    <div>
+        <button id="bt_start">Start</button>
+        <button id="bt_stop">Stop</button>
+    </div>
+    <div id="performance"></div>
+    <video class="dbrScanner-video" playsinline="true"></video>
+    <script>
+        var performanceReport = document.getElementById('performance');
+        var btStart = document.getElementById("bt_start");
+        var btStop = document.getElementById("bt_stop");
+        var decoding_start = 0;
+        var videoSelect = document.getElementById('videoSource');
+
+        var scanner = null;
+        var cameras = null;
+        var camerainfo = {};
+        (async () => {
+            scanner = await Dynamsoft.BarcodeScanner.createInstance();
+            scanner.setUIElement(document.getElementsByClassName("dbrScanner-video")[0]);
+            await scanner.updateRuntimeSettings('single');
+            let settings = await scanner.getRuntimeSettings();
+            // // settings.deblurLevel = 0;
+            // settings.expectedBarcodesCount = 1
+            // settings.barcodeFormatIds = Dynamsoft.EnumBarcodeFormat.BF_CODE_128;
+            // // settings.timeout = 500
+            scanner.updateRuntimeSettings(settings);
+
+            // get camera source
+            cameras = await scanner.getAllCameras();
+            for (var i = 0; i < cameras.length; i++) {
+                let option = document.createElement('option');
+                option.text = cameras[i].label || 'camera ' + i;
+                camerainfo[option.text] = i;
+                videoSelect.appendChild(option);
+            }
+
+            scanner.onFrameRead = results => {
+                let decoding_end = Date.now();
+                if (decoding_start == 0) {
+                    decoding_start = decoding_end;
+                    return;
+                }
+                let time_cost = decoding_end - decoding_start;
+                decoding_start = decoding_end;
+
+                performanceReport.innerHTML = "Time cost: " + time_cost + " ms <br>";
+
+                if (results.length > 0) {
+
+                    let txts = [];
+                    try {
+                        let localization;
+                        for (var i = 0; i < results.length; ++i) {
+                            performanceReport.innerHTML += "Type: " + results[i].BarcodeFormatString + ", Value: " + results[i].BarcodeText + " <br>"
+                            txts.push(results[i].BarcodeText);
+                        }
+                        let out = txts.join(', ');
+                        if (txts.length > 0) {
+                            console.log(out + ", time cost: " + time_cost);
+                        }
+                    } catch (e) {
+                    }
+                }
+                else {
+                    console.log("No barcode found");
+                    performanceReport.innerHTML += "No barcode found"
+                }
+            };
+            scanner.onUnduplicatedRead = (txt, result) => {
+                console.log(txt, result);
+            };
+        })();
+
+        btStart.onclick = function () {
+            decoding_start = 0;
+            (async () => {                
+                await scanner.open();
+                scanner.setResolution(640, 480);
+            })();
+        }
+
+        btStop.onclick = function () {
+            (async () => {
+                await scanner.stop();
+            })();
+        }
+
+        videoSelect.onchange = function () {
+            decoding_start = 0;
+            (async () => {
+                if (scanner.isOpen()) {
+                    await scanner.setCurrentCamera(cameras[camerainfo[videoSelect.value]]);
+                    scanner.setResolution(640, 480);
+                }
+            })();
+        }
+    </script>
+
+</body>
+
+</html>
