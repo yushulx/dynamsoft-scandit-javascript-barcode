@@ -42,6 +42,7 @@
             settings.barcodeFormatIds = Dynamsoft.EnumBarcodeFormat.BF_CODE_128 | Dynamsoft.EnumBarcodeFormat.BF_UPC_A | Dynamsoft.EnumBarcodeFormat.BF_QR_CODE;
             // // settings.timeout = 500
             scanner.updateRuntimeSettings(settings);
+            scanner._canvasMaxWH = 640;
 
             // get camera source
             cameras = await scanner.getAllCameras();
