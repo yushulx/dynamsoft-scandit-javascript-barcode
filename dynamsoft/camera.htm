@@ -19,6 +19,7 @@
     <div id="performance"></div>
     <video class="dbrScanner-video" playsinline="true"></video>
     <script>
+        var resWidth = 1280, resHeight = 720;
         var performanceReport = document.getElementById('performance');
         var btStart = document.getElementById("bt_start");
         var btStop = document.getElementById("bt_stop");
@@ -34,8 +35,8 @@
             await scanner.updateRuntimeSettings('single');
             let settings = await scanner.getRuntimeSettings();
             // // settings.deblurLevel = 0;
-            // settings.expectedBarcodesCount = 1
-            // settings.barcodeFormatIds = Dynamsoft.EnumBarcodeFormat.BF_CODE_128;
+            settings.expectedBarcodesCount = 1
+            settings.barcodeFormatIds = Dynamsoft.EnumBarcodeFormat.BF_CODE_128 | Dynamsoft.EnumBarcodeFormat.BF_UPC_A | Dynamsoft.EnumBarcodeFormat.BF_QR_CODE;
             // // settings.timeout = 500
             scanner.updateRuntimeSettings(settings);
 
@@ -57,31 +58,26 @@
                 let time_cost = decoding_end - decoding_start;
                 decoding_start = decoding_end;
 
-                performanceReport.innerHTML = "Time cost: " + time_cost + " ms <br>";
-
+                performanceReport.innerHTML = "";
                 if (results.length > 0) {
-
                     let txts = [];
                     try {
                         let localization;
                         for (var i = 0; i < results.length; ++i) {
-                            performanceReport.innerHTML += "Type: " + results[i].BarcodeFormatString + ", Value: " + results[i].BarcodeText + " <br>"
+                            performanceReport.innerHTML += "Type: " + results[i].BarcodeFormatString + ", Value: " + results[i].BarcodeText + ", time cost: " + time_cost + " ms <br>";
                             txts.push(results[i].BarcodeText);
+                            console.log("Type: " + results[i].BarcodeFormatString + ", Value: " + results[i].BarcodeText + ", time cost: " + time_cost + " ms");
                         }
                         let out = txts.join(', ');
-                        if (txts.length > 0) {
-                            console.log(out + ", time cost: " + time_cost);
-                        }
                     } catch (e) {
                     }
                 }
                 else {
-                    console.log("No barcode found");
-                    performanceReport.innerHTML += "No barcode found"
+                    // console.log("No barcode found");
                 }
             };
             scanner.onUnduplicatedRead = (txt, result) => {
-                console.log(txt, result);
+                // console.log(txt, result);
             };
         })();
 
@@ -89,7 +85,7 @@
             decoding_start = 0;
             (async () => {                
                 await scanner.open();
-                scanner.setResolution(640, 480);
+                scanner.setResolution(resWidth, resHeight);
             })();
         }
 
@@ -104,7 +100,7 @@
             (async () => {
                 if (scanner.isOpen()) {
                     await scanner.setCurrentCamera(cameras[camerainfo[videoSelect.value]]);
-                    scanner.setResolution(640, 480);
+                    scanner.setResolution(resWidth, resHeight);
                 }
             })();
         }

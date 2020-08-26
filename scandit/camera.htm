@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/scandit-sdk@5.x"></script>
+</head>
+
+<body>
+    <h1>Scandit</h1>
+    <div class="select">
+        <a>Video source: </a>
+        <select id="videoSource"></select>
+    </div>
+    <div>
+        <button id="bt_start">Start</button>
+        <button id="bt_stop">Stop</button>
+    </div>
+    <div id="performance"></div>
+    <div id="scandit-barcode-picker"></div>
+    <script>
+        var resWidth = 1280, resHeight = 720;
+        var decoding_start = 0;
+        var performanceReport = document.getElementById('performance');
+        var videoSelect = document.getElementById('videoSource');
+        var camerainfo = {};
+        var availableCameras = []
+
+        // get camera list
+        navigator.mediaDevices.enumerateDevices().then(gotDevices);
+        var index = 0;
+        function gotDevices(cameras) {
+            for (var i = 0; i < cameras.length; i++) {
+                let option = document.createElement('option');
+                if (cameras[i].deviceId !== "") {
+                    option.text = cameras[i].label || 'camera ' + i;
+                    camerainfo[option.text] = index;
+                    availableCameras.push(cameras[i]);
+                    videoSelect.appendChild(option);
+                    index += 1;
+                }
+            }
+        }
+
+        var scanditScanner;
+
+        function createScanditScanner(cameraIndex) {
+            ScanditSDK.configure("AZwuAjJZLa8GPRZJUSYeTRMUA7aaAIqzmmgoURl2FojET/qUTgFcPM1HrEjjR+hSpz7HhQUkH211UGnoVEtyIPVB1hgaKqjg7WsaD6NAwojNQqwzEFclXWJps3JyaON+8AyZcF4FLgvtHk0wEgMiebqghaFzcRj1QV7EBgAHBjvOMmKyauM1nY7+NQ2B/89OFGa7wqj/X0NbtDitt52DvYshvYECztp/IiWiaiHcohtDIrkAC4xk7/DBF9DL+7bEyLKzj8ps1E5cS32trApcPa+HoPqiwhjMPdP21Sxf1kkiCWQfetdZ1q9QvwinWWU/QRKZFMmHqMqRI8ru0Thn/K0sysMxV4l3btNhBDy3fMqZPO2E79VRDkWJ176W/r9z1mhu26QqoDtCa5+C4LDOMORifwWYgfndsFCub7cDVSGpYQfgnpxPNHxLIyJFXS6zwxJWZ5YLbCfh2p8yKsF0nsAjVdQZxYtQBhv+BSVh+yGHHwja7PzoZ0OurUaP59ha/iIgVyImjmihuiOz8cKGD/TC+PhRItStfPVUh7b3M9Xg8MbB37pB94J09+uV4TAvC3EXBPLjopEJiARXuDLWy5zJku/lEBnYP7JuS6igvZ0LxApaqMPDvgCu81wC+PwX1QYcvOE95bHO8EPYfPKK5q1ORxvac61umHqO4ZOR7IgGxzn9ZHL0/eOxxIoC89tcD5Zqh5I12FmfhfpVFY1tL0cXUT3qimVb3s3cmfoUyKls51K7wEd+SO29VspIY3UgUhTiptJpGrcAaLMpwP8+2Z91WqUVqhbaxdMFXcTQ9QvQPsE90Dq5KNCRxRyH8MOq", {
+                engineLocation: "https://cdn.jsdelivr.net/npm/scandit-sdk@5.x/build/",
+            })
+                .then(() => {
+                    return ScanditSDK.BarcodePicker.create(document.getElementById("scandit-barcode-picker"), {
+                        camera: {currentResolution: { height: resHeight, width: resWidth }, deviceId: availableCameras[cameraIndex].deviceId, label: availableCameras[cameraIndex].label },
+                        scanSettings: new ScanditSDK.ScanSettings({ gpuAcceleration: true, enabledSymbologies: ["code128", "qr", "upca"], maxNumberOfCodesPerFrame: 1 }),
+                        accessCamera: true,
+                    });
+                })
+                .then((barcodePicker) => {
+                    scanditScanner = barcodePicker;
+
+                    barcodePicker.on("processFrame", (scanResult) => {
+                        let decoding_end = Date.now();
+                        if (decoding_start == 0) {
+                            decoding_start = decoding_end;
+                            return;
+                        }
+                        let time_cost = decoding_end - decoding_start;
+                        decoding_start = decoding_end;
+
+                        performanceReport.innerHTML = ""
+                        if (scanResult.barcodes.length > 0) {
+                            for (let barcode of scanResult.barcodes) {
+                                performanceReport.innerHTML += "Type: " + barcode.symbology + ", Value" + barcode.data + ", time cost: " + time_cost + " ms <br>";
+                                console.log("Type: " + barcode.symbology + ", Value" + barcode.data + ", time cost: " + time_cost + " ms")
+                            }
+                        }
+                        else {
+                            // console.log("No barcode found");
+                        }
+
+
+                    });
+
+                    barcodePicker.on("ready", () => {
+                        decoding_start = 0;
+                        console.log("camera is ready");
+                    });
+
+                });
+        }
+
+        createScanditScanner(0);
+
+        var btStart = document.getElementById("bt_start");
+        var btStop = document.getElementById("bt_stop");
+        var decoding_start = 0;
+
+        var scanner = null;
+        var cameras = null;
+        var camerainfo = {};
+
+        btStart.onclick = function () {
+            decoding_start = 0;
+            if (scanditScanner) {
+                scanditScanner.resumeScanning();
+            }
+        }
+
+        btStop.onclick = function () {
+            if (scanditScanner) {
+                scanditScanner.pauseScanning(true);
+            }
+        }
+
+        videoSelect.onchange = function () {
+            decoding_start = 0;
+            if (scanditScanner) {
+                scanditScanner.destroy(true);
+                createScanditScanner(camerainfo[videoSelect.value]);
+                // Issue: setActiveCamera cannot work in some cases. 
+                // console.log("deviceId: " + availableCameras[camerainfo[videoSelect.value]].deviceId + ", label: " + availableCameras[camerainfo[videoSelect.value]].label);
+                // scanditScanner.setActiveCamera({
+                //     camera: { cameraType: "back", currentResolution: { height: resHeight, width: resWidth }, deviceId: availableCameras[camerainfo[videoSelect.value]].deviceId, label: availableCameras[camerainfo[videoSelect.value]].label },
+                //     scanSettings: new ScanditSDK.ScanSettings({ gpuAcceleration: true, enabledSymbologies: ["code128", "qr", "upca"], maxNumberOfCodesPerFrame: 2 })
+                // }).
+                //     then((BarcodePicker) => {
+
+                //     })
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
