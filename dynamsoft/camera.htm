@@ -24,11 +24,14 @@
         var btStart = document.getElementById("bt_start");
         var btStop = document.getElementById("bt_stop");
         var decoding_start = 0;
+        var count = 0;
+        var averageTime = 0;
+        var total = 0;
         var videoSelect = document.getElementById('videoSource');
-
         var scanner = null;
         var cameras = null;
         var camerainfo = {};
+
         (async () => {
             scanner = await Dynamsoft.BarcodeScanner.createInstance();
             scanner.setUIElement(document.getElementsByClassName("dbrScanner-video")[0]);
@@ -53,9 +56,16 @@
                 let decoding_end = Date.now();
                 if (decoding_start == 0) {
                     decoding_start = decoding_end;
+                    count = 0;
+                    total = 0;
+                    averageTime = 0;
                     return;
                 }
                 let time_cost = decoding_end - decoding_start;
+                count += 1;
+                total += time_cost;
+                averageTime = total / count;
+
                 decoding_start = decoding_end;
 
                 // performanceReport.innerHTML = "";
@@ -64,9 +74,9 @@
                     try {
                         let localization;
                         for (var i = 0; i < results.length; ++i) {
-                            performanceReport.innerHTML = "Type: " + results[i].BarcodeFormatString + ", Value: " + results[i].BarcodeText + ", time cost: " + time_cost + " ms <br>";
+                            performanceReport.innerHTML = "Type: " + results[i].BarcodeFormatString + ", Value: " + results[i].BarcodeText + ", average time cost: " + averageTime + " ms <br>";
                             txts.push(results[i].BarcodeText);
-                            console.log("Type: " + results[i].BarcodeFormatString + ", Value: " + results[i].BarcodeText + ", time cost: " + time_cost + " ms");
+                            console.log("Type: " + results[i].BarcodeFormatString + ", Value: " + results[i].BarcodeText + ", average time cost: " + averageTime + " ms");
                         }
                         let out = txts.join(', ');
                     } catch (e) {

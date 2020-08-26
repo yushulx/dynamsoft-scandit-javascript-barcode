@@ -24,6 +24,9 @@
         var videoSelect = document.getElementById('videoSource');
         var camerainfo = {};
         var availableCameras = []
+        var count = 0;
+        var averageTime = 0;
+        var total = 0;
 
         // get camera list
         navigator.mediaDevices.enumerateDevices().then(gotDevices);
@@ -52,6 +55,7 @@
                         camera: {currentResolution: { height: resHeight, width: resWidth }, deviceId: availableCameras[cameraIndex].deviceId, label: availableCameras[cameraIndex].label },
                         scanSettings: new ScanditSDK.ScanSettings({ gpuAcceleration: true, enabledSymbologies: ["code128", "qr", "upca"], maxNumberOfCodesPerFrame: 1 }),
                         accessCamera: true,
+                        enableCameraSwitcher: false
                     });
                 })
                 .then((barcodePicker) => {
@@ -61,16 +65,32 @@
                         let decoding_end = Date.now();
                         if (decoding_start == 0) {
                             decoding_start = decoding_end;
+                            count = 0;
+                            total = 0;
+                            averageTime = 0;
                             return;
                         }
                         let time_cost = decoding_end - decoding_start;
+                        if (count == 60) {
+                            count = 0;
+                            total = 0;
+                            averageTime = 0;
+                        }
+                        count += 1;
+                        total += time_cost;
+                        averageTime = total / count;
+
                         decoding_start = decoding_end;
+
+                        // console.log("average processing time: " + scanditScanner.averageProcessingTime);
+                        // console.log("average time cost: " + averageTime);
+                        // console.log("");
 
                         // performanceReport.innerHTML = ""
                         if (scanResult.barcodes.length > 0) {
                             for (let barcode of scanResult.barcodes) {
-                                performanceReport.innerHTML = "Type: " + barcode.symbology + ", Value" + barcode.data + ", time cost: " + time_cost + " ms <br>";
-                                console.log("Type: " + barcode.symbology + ", Value" + barcode.data + ", time cost: " + time_cost + " ms")
+                                performanceReport.innerHTML = "Type: " + barcode.symbology + ", Value" + barcode.data + ", average time cost: " + averageTime + " ms <br>";
+                                console.log("Type: " + barcode.symbology + ", Value" + barcode.data + ", average time cost: " + averageTime + " ms")
                             }
                         }
                         else {
@@ -92,11 +112,6 @@
 
         var btStart = document.getElementById("bt_start");
         var btStop = document.getElementById("bt_stop");
-        var decoding_start = 0;
-
-        var scanner = null;
-        var cameras = null;
-        var camerainfo = {};
 
         btStart.onclick = function () {
             decoding_start = 0;
