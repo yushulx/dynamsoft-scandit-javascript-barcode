@@ -16,7 +16,7 @@
         <button id="bt_start">Start</button>
         <button id="bt_stop">Stop</button>
     </div>
-    <div id="performance"></div>
+    <div id="performance">N/A</div>
     <video class="dbrScanner-video" playsinline="true"></video>
     <script>
         var resWidth = 1280, resHeight = 720;
@@ -58,13 +58,13 @@
                 let time_cost = decoding_end - decoding_start;
                 decoding_start = decoding_end;
 
-                performanceReport.innerHTML = "";
+                // performanceReport.innerHTML = "";
                 if (results.length > 0) {
                     let txts = [];
                     try {
                         let localization;
                         for (var i = 0; i < results.length; ++i) {
-                            performanceReport.innerHTML += "Type: " + results[i].BarcodeFormatString + ", Value: " + results[i].BarcodeText + ", time cost: " + time_cost + " ms <br>";
+                            performanceReport.innerHTML = "Type: " + results[i].BarcodeFormatString + ", Value: " + results[i].BarcodeText + ", time cost: " + time_cost + " ms <br>";
                             txts.push(results[i].BarcodeText);
                             console.log("Type: " + results[i].BarcodeFormatString + ", Value: " + results[i].BarcodeText + ", time cost: " + time_cost + " ms");
                         }

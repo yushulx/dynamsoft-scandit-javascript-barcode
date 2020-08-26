@@ -15,7 +15,7 @@
         <button id="bt_start">Start</button>
         <button id="bt_stop">Stop</button>
     </div>
-    <div id="performance"></div>
+    <div id="performance">N/A</div>
     <div id="scandit-barcode-picker"></div>
     <script>
         var resWidth = 1280, resHeight = 720;
@@ -66,10 +66,10 @@
                         let time_cost = decoding_end - decoding_start;
                         decoding_start = decoding_end;
 
-                        performanceReport.innerHTML = ""
+                        // performanceReport.innerHTML = ""
                         if (scanResult.barcodes.length > 0) {
                             for (let barcode of scanResult.barcodes) {
-                                performanceReport.innerHTML += "Type: " + barcode.symbology + ", Value" + barcode.data + ", time cost: " + time_cost + " ms <br>";
+                                performanceReport.innerHTML = "Type: " + barcode.symbology + ", Value" + barcode.data + ", time cost: " + time_cost + " ms <br>";
                                 console.log("Type: " + barcode.symbology + ", Value" + barcode.data + ", time cost: " + time_cost + " ms")
                             }
                         }
