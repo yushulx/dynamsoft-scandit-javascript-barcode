@@ -37,7 +37,7 @@
             scanner.setUIElement(document.getElementsByClassName("dbrScanner-video")[0]);
             await scanner.updateRuntimeSettings('single');
             let settings = await scanner.getRuntimeSettings();
-            // // settings.deblurLevel = 0;
+            // settings.deblurLevel = 0;
             settings.expectedBarcodesCount = 1
             settings.barcodeFormatIds = Dynamsoft.EnumBarcodeFormat.BF_CODE_128 | Dynamsoft.EnumBarcodeFormat.BF_UPC_A | Dynamsoft.EnumBarcodeFormat.BF_QR_CODE;
             // // settings.timeout = 500
@@ -90,6 +90,8 @@
             scanner.onUnduplicatedRead = (txt, result) => {
                 // console.log(txt, result);
             };
+
+            await scanner.open();
         })();
 
         btStart.onclick = function () {
