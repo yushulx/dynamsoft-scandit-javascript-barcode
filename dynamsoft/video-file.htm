@@ -35,7 +35,7 @@
             let settings = await barcodereader.getRuntimeSettings();
             // settings.deblurLevel = 0;
             settings.expectedBarcodesCount = 1
-            settings.barcodeFormatIds = Dynamsoft.EnumBarcodeFormat.BF_CODE_128;
+            settings.barcodeFormatIds = Dynamsoft.EnumBarcodeFormat.BF_CODE_128 | Dynamsoft.EnumBarcodeFormat.BF_UPC_A | Dynamsoft.EnumBarcodeFormat.BF_QR_CODE;
             // settings.timeout = 500
             barcodereader.updateRuntimeSettings(settings);
         })();
@@ -49,7 +49,7 @@
 
             while (tmpWidth > 1000 || tmpHeight > 1000) {
                 tmpWidth *= ratio;
-                tmpHeight *= ratio; 
+                tmpHeight *= ratio;
             }
             canvas.width = tmpWidth;
             canvas.height = tmpHeight;

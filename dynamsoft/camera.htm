@@ -63,6 +63,11 @@
                     return;
                 }
                 let time_cost = decoding_end - decoding_start;
+                if (count == 60) {
+                    count = 0;
+                    total = 0;
+                    averageTime = 0;
+                };
                 count += 1;
                 total += time_cost;
                 averageTime = total / count;
