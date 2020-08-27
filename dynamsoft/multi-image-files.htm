@@ -19,7 +19,7 @@
             await barcodereader.updateRuntimeSettings('balance');
             let settings = await barcodereader.getRuntimeSettings();
             // settings.deblurLevel = 0;
-            // settings.expectedBarcodesCount = 1
+            settings.expectedBarcodesCount = 20
             // settings.timeout = 500
             barcodereader.updateRuntimeSettings(settings);
         })();
@@ -39,10 +39,16 @@
                     console.log(img.width, img.height);
                     // load image to canvas
                     let canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
+                    var tmpWidth = img.width, tmpHeight = img.height;
+
+                    while (tmpWidth > 1000 || tmpHeight > 1000) {
+                        tmpWidth *= ratio;
+                        tmpHeight *= ratio; 
+                    }
+                    canvas.width = tmpWidth;
+                    canvas.height = tmpHeight;
                     let context = canvas.getContext('2d');
-                    context.drawImage(img, 0, 0);
+                    context.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
                     let buffer = context.getImageData(0, 0, canvas.width, canvas.height).data;
                     let decoding_start = Date.now();
                     barcodereader

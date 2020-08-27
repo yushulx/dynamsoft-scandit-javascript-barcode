@@ -17,6 +17,7 @@
     <div id="performance"></div>
     <input type="file" id="videofile" accept=".mp4" onchange="loadvideo()" />
     <script>
+        // Dynamsoft.BarcodeReader._onLog = console.log;
         var log = [["Time Cost (ms)", "Barcode Type", "Barcode Value"]];
         var performanceReport = document.getElementById('performance');
         var barcodereader;
@@ -33,13 +34,19 @@
 
         var videoContainer;
         var isPlaying = true;
-
+        var ratio = 0.6;
         function decodeVideo(width, height) {
             let canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
+            var tmpWidth = width, tmpHeight = height;
+
+            while (tmpWidth > 1000 || tmpHeight > 1000) {
+                tmpWidth *= ratio;
+                tmpHeight *= ratio; 
+            }
+            canvas.width = tmpWidth;
+            canvas.height = tmpHeight;
             let context = canvas.getContext('2d');
-            context.drawImage(videoContainer, 0, 0);
+            context.drawImage(videoContainer, 0, 0, width, height, 0, 0, canvas.width, canvas.height);
             let buffer = context.getImageData(0, 0, canvas.width, canvas.height).data;
             let decoding_start = Date.now();
             barcodereader
