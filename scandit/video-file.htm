@@ -25,7 +25,7 @@
       engineLocation: "https://cdn.jsdelivr.net/npm/scandit-sdk@5.x/build/",
     })
       .then(() => {
-        scanditScanner = new ScanditSDK.Scanner({ imageSettings: {}, scanSettings: new ScanditSDK.ScanSettings({ gpuAcceleration: true, enabledSymbologies: ["code128"], maxNumberOfCodesPerFrame: 1 }) });
+        scanditScanner = new ScanditSDK.Scanner({ imageSettings: {}, scanSettings: new ScanditSDK.ScanSettings({ gpuAcceleration: true, enabledSymbologies: ["code128", "qr", "upca"], maxNumberOfCodesPerFrame: 1 }) });
       });
 
 
