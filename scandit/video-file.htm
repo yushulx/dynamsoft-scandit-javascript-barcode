@@ -8,8 +8,16 @@
 <body>
   <h1>Scandit</h1>
   <div id="performance"></div>
+  <button id="bt-performance">Export Data</button>
   <input type="file" id="videofile" accept=".mp4" onchange="loadvideo()" />
   <script>
+    var decoding_start = 0;
+    var count = 0;
+    var averageTime = 0;
+    var total = 0;
+
+    var btPerformance = document.getElementById('bt-performance');
+
     var log = [["Time Cost (ms)", "Barcode Type", "Barcode Value"]];
     var performanceReport = document.getElementById('performance');
     var scanditScanner;
@@ -38,16 +46,36 @@
       context.drawImage(videoContainer, 0, 0, width, height, 0, 0, canvas.width, canvas.height);
       let buffer = context.getImageData(0, 0, canvas.width, canvas.height).data;
       scanditScanner.applyImageSettings({ format: ScanditSDK.ImageSettings.Format.RGBA_8U, width: canvas.width, height: canvas.height });
-      let decoding_start = Date.now();
       scanditScanner.processImage(buffer).then((scanResult) => {
         let decoding_end = Date.now();
-        performanceReport.innerHTML = "<br> Time cost: " + (decoding_end - decoding_start) + " ms <br>";
+        if (decoding_start == 0) {
+          decoding_start = decoding_end;
+          count = 0;
+          total = 0;
+          averageTime = 0;
+
+          decodeVideo(width, height);
+          return;
+        }
+        let time_cost = decoding_end - decoding_start;
+        if (count == 60) {
+          count = 0;
+          total = 0;
+          averageTime = 0;
+        }
+        count += 1;
+        total += time_cost;
+        averageTime = total / count;
+
+        decoding_start = decoding_end;
+
+        performanceReport.innerHTML = "<br> Average Time cost: " + averageTime + " ms <br>";
 
         if (scanResult.barcodes.length > 0) {
           for (var barcode of scanResult.barcodes) {
-            console.log(barcode.data + ", time cost: " + (decoding_end - decoding_start));
+            console.log(barcode.data + ", time cost: " + time_cost);
             performanceReport.innerHTML += "Type:" + barcode.symbology + ", Value: " + barcode.data + " <br>"
-            log.push([(decoding_end - decoding_start), barcode.symbology, barcode.data]);
+            log.push([time_cost, barcode.symbology, barcode.data]);
           }
         }
         else {
@@ -57,9 +85,6 @@
 
         if (isPlaying) {
           decodeVideo(width, height);
-        }
-        else {
-          saveAsCSV();
         }
       });
 
@@ -79,6 +104,7 @@
       }, false);
 
       videoContainer.addEventListener("playing", function () {
+        decoding_start = 0;
         isPlaying = true;
         decodeVideo(this.videoWidth, this.videoHeight);
       });
@@ -88,7 +114,7 @@
       });
     };
 
-    function saveAsCSV() {
+    btPerformance.onclick = function saveAsCSV() {
       let csvContent = "data:text/csv;charset=utf-8," + log.map(e => e.join(",")).join("\n");
       var encodedUri = encodeURI(csvContent);
       var link = document.createElement("a");
