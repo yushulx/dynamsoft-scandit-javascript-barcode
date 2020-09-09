@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-javascript-barcode@7.5.0-v1/dist/dbr.js" data-productKeys="LICENSE-KEY"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dynamsoft-javascript-barcode@7.6.0/dist/dbr.js" data-productKeys="LICENSE-KEY"></script>
 </head>
 
 <body>
@@ -25,7 +25,8 @@
             // settings.timeout = 500
             barcodereader.updateRuntimeSettings(settings);
         })();
-
+        
+        var ratio = 0.6;
         function loadfile() {
             let name = document.getElementById('barcode-file');
             var img = document.getElementById('image');
